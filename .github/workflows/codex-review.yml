@@ -1,0 +1,35 @@
+# Copy this file to .github/workflows/codex-review.yml in a Scout repo to turn on Codex
+# review there. Three steps, in order:
+#   1. Add the repo to the org secret OPENAI_API_KEY's repository list (org owner:
+#      gh secret set OPENAI_API_KEY --org scoutsolutions --visibility selected --repos <existing>,<this-repo>).
+#   2. Add an AGENTS.md at the repo root; start from .github/codex/AGENTS-template.md in
+#      scout-dev-claude and keep only what is true for this repo.
+#   3. Add this file. The review logic itself lives in scout-dev-claude
+#      (.github/workflows/codex-review-reusable.yml) so one PR there updates every repo.
+# Without the secret the review job fails on the missing key rather than skipping; do
+# step 1 first. See scout-dev-claude docs/decisions/0001 for what this is and is not.
+
+name: Codex review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+concurrency:
+  group: codex-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  codex:
+    uses: scoutsolutions/scout-dev-claude/.github/workflows/codex-review-reusable.yml@main
+    # A called workflow can lower the caller's token permissions but never raise them,
+    # so the caller has to grant what the post step needs. Without this, a repo whose
+    # default token is read-only (the safer org setting) cannot post the comment.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    with:
+      effort: high
+    secrets:
+      openai-api-key: ${{ secrets.OPENAI_API_KEY }}
