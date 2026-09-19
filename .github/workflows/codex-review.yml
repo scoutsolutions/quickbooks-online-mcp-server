@@ -30,6 +30,10 @@ jobs:
       pull-requests: write
       issues: write
     with:
-      effort: high
+      # medium since 2026-09-19: high timed out on every PlayerPulse run and on more than half of
+      # membertraxx-node's, posting nothing; medium finished every run in two to five minutes and
+      # every finding it posted held. Set high here if this repo wants the depth and accepts the
+      # timeouts. Numbers: scout-dev-claude tools/scout-codex-runs and ADR 0001 amendments.
+      effort: medium
     secrets:
       openai-api-key: ${{ secrets.OPENAI_API_KEY }}
